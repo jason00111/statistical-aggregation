@@ -1,5 +1,4 @@
-import { AGG_METADATA_FIELD, AggregationTypes, aggregate } from "./aggregate";
-
+import { AGG_METADATA_FIELD, aggregate, AggregationTypes } from "./aggregate";
 import { assert } from "chai";
 
 const ERROR_MARGIN = 5e-14;
@@ -467,5 +466,554 @@ describe("aggregate.test", () => {
       averagePriceField: expectedAveragePriceTotal,
     });
     assert.exists(totals[AGG_METADATA_FIELD]);
+  });
+
+  it("Simple Example", () => {
+    const customers = [
+      {
+        customerId: 1,
+        region: "midwest",
+        revenue: 10,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        revenue: 20,
+      },
+      {
+        customerId: 3,
+        region: "midwest",
+        revenue: 30,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        revenue: 40,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        revenue: 50,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        revenue: 60,
+      },
+    ];
+
+    const result = aggregate({
+      records: customers,
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+        totalRevenue: {
+          method: AggregationTypes.sum,
+          sourceField: "revenue",
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(result, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          averageRevenue: 20,
+          totalRevenue: 60,
+        },
+        {
+          region: "northeast",
+          averageRevenue: 50,
+          totalRevenue: 150,
+        },
+      ],
+      totals: {
+        averageRevenue: 35,
+        totalRevenue: 210,
+      },
+    });
+  });
+
+  it("Example with Multiple Match Keys and Structured Data", () => {
+    const customers = [
+      {
+        customerId: 1,
+        region: "midwest",
+        other: { plan: "basic" },
+        revenue: 10,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        other: { plan: "super" },
+        revenue: 20,
+      },
+      {
+        customerId: 3,
+        region: "midwest",
+        other: { plan: "basic" },
+        revenue: 30,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        other: { plan: "super" },
+        revenue: 40,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        other: { plan: "basic" },
+        revenue: 50,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        other: { plan: "super" },
+        revenue: 60,
+      },
+    ];
+
+    const result = aggregate({
+      records: customers,
+      matchKeys: ["region", "other.plan"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+        totalRevenue: {
+          method: AggregationTypes.sum,
+          sourceField: "revenue",
+        },
+        "extra.numberOfCustomers": {
+          method: AggregationTypes.count,
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(result, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          other: {
+            plan: "basic",
+          },
+          averageRevenue: 20,
+          totalRevenue: 40,
+          extra: {
+            numberOfCustomers: 2,
+          },
+        },
+        {
+          region: "midwest",
+          other: {
+            plan: "super",
+          },
+          averageRevenue: 20,
+          totalRevenue: 20,
+          extra: {
+            numberOfCustomers: 1,
+          },
+        },
+        {
+          region: "northeast",
+          other: {
+            plan: "super",
+          },
+          averageRevenue: 50,
+          totalRevenue: 100,
+          extra: {
+            numberOfCustomers: 2,
+          },
+        },
+        {
+          region: "northeast",
+          other: {
+            plan: "basic",
+          },
+          averageRevenue: 50,
+          totalRevenue: 50,
+          extra: {
+            numberOfCustomers: 1,
+          },
+        },
+      ],
+      totals: {
+        averageRevenue: 35,
+        totalRevenue: 210,
+        extra: {
+          numberOfCustomers: 6,
+        },
+      },
+    });
+  });
+
+  it("Example with Buckets", () => {
+    const customers = [
+      {
+        customerId: 1,
+        age: 10,
+        revenue: 60,
+      },
+      {
+        customerId: 2,
+        age: 20,
+        revenue: 50,
+      },
+      {
+        customerId: 3,
+        age: 30,
+        revenue: 40,
+      },
+      {
+        customerId: 4,
+        age: 40,
+        revenue: 30,
+      },
+      {
+        customerId: 5,
+        age: 50,
+        revenue: 20,
+      },
+      {
+        customerId: 6,
+        age: 60,
+        revenue: 10,
+      },
+    ];
+
+    const result = aggregate({
+      records: customers,
+      matchKeys: ["age"],
+      buckets: {
+        age: [0, 25, 50],
+      },
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+        totalRevenue: {
+          method: AggregationTypes.sum,
+          sourceField: "revenue",
+        },
+        numberOfCustomers: {
+          method: AggregationTypes.count,
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(result, {
+      aggregatedRecords: [
+        {
+          age: "0-25",
+          averageRevenue: 55,
+          totalRevenue: 110,
+          numberOfCustomers: 2,
+        },
+        {
+          age: "25-50",
+          averageRevenue: 35,
+          totalRevenue: 70,
+          numberOfCustomers: 2,
+        },
+        {
+          age: "50+",
+          averageRevenue: 15,
+          totalRevenue: 30,
+          numberOfCustomers: 2,
+        },
+      ],
+      totals: {
+        averageRevenue: 35,
+        totalRevenue: 210,
+        numberOfCustomers: 6,
+      },
+    });
+  });
+
+  it("Example of Weighted Average", () => {
+    const customers = [
+      {
+        customerId: 1,
+        region: "midwest",
+        revenue: 10,
+        daysActive: 51,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        revenue: 20,
+        daysActive: 52,
+      },
+      {
+        customerId: 3,
+        region: "midwest",
+        revenue: 30,
+        daysActive: 53,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        revenue: 40,
+        daysActive: 54,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        revenue: 50,
+        daysActive: 55,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        revenue: 60,
+        daysActive: 56,
+      },
+    ];
+
+    const result = aggregate({
+      records: customers,
+      matchKeys: ["region"],
+      fields: {
+        weightedAverageRevenue: {
+          method: AggregationTypes.weightedAverage,
+          sourceField: "revenue",
+          weightField: "daysActive",
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(result, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          weightedAverageRevenue: 20.128205128205128,
+        },
+        {
+          region: "northeast",
+          weightedAverageRevenue: 50.121212121212125,
+        },
+      ],
+      totals: {
+        weightedAverageRevenue: 35.545171339563865,
+      },
+    });
+  });
+
+  it("Example of Composition", () => {
+    const customersChunk1 = [
+      {
+        customerId: 1,
+        region: "midwest",
+        revenue: 10,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        revenue: 20,
+      },
+      {
+        customerId: 3,
+        region: "midwest",
+        revenue: 30,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        revenue: 40,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        revenue: 50,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        revenue: 60,
+      },
+    ];
+
+    const customersChunk2 = [
+      {
+        customerId: 7,
+        region: "midwest",
+        revenue: 70,
+      },
+      {
+        customerId: 8,
+        region: "midwest",
+        revenue: 80,
+      },
+      {
+        customerId: 9,
+        region: "northeast",
+        revenue: 90,
+      },
+      {
+        customerId: 10,
+        region: "northeast",
+        revenue: 100,
+      },
+    ];
+
+    const resultChunk1 = aggregate({
+      records: customersChunk1,
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+    });
+
+    const resultChunk2 = aggregate({
+      records: customersChunk2,
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+    });
+
+    const combinedResult = aggregate({
+      records: [
+        ...resultChunk1.aggregatedRecords,
+        ...resultChunk2.aggregatedRecords,
+      ],
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(combinedResult, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          averageRevenue: 42,
+        },
+        {
+          region: "northeast",
+          averageRevenue: 68,
+        },
+      ],
+      totals: {
+        averageRevenue: 55,
+      },
+    });
+  });
+
+  it("Example of Augmentation", () => {
+    const customers = [
+      {
+        customerId: 1,
+        region: "midwest",
+        revenue: 10,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        revenue: 20,
+      },
+      {
+        customerId: 3,
+        region: "midwest",
+        revenue: 30,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        revenue: 40,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        revenue: 50,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        revenue: 60,
+      },
+    ];
+
+    const result = aggregate({
+      records: customers,
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+    });
+
+    const newCustomers = [
+      {
+        customerId: 7,
+        region: "midwest",
+        revenue: 70,
+      },
+      {
+        customerId: 8,
+        region: "midwest",
+        revenue: 80,
+      },
+      {
+        customerId: 9,
+        region: "northeast",
+        revenue: 90,
+      },
+      {
+        customerId: 10,
+        region: "northeast",
+        revenue: 100,
+      },
+    ];
+
+    const updatedResult = aggregate({
+      records: [...result.aggregatedRecords, ...newCustomers],
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(updatedResult, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          averageRevenue: 42,
+        },
+        {
+          region: "northeast",
+          averageRevenue: 68,
+        },
+      ],
+      totals: {
+        averageRevenue: 55,
+      },
+    });
   });
 });
