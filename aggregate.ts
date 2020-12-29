@@ -10,7 +10,7 @@ export enum AggregationTypes {
   weightedAverage = "weightedAverage",
 }
 
-export const AGG_METADATA_FIELD = "_aggregationData";
+export const AGG_METADATA_FIELD = "_aggregationMetadata";
 const METADATA_MATCH_KEYS_FIELD = "matchKeys";
 const METADATA_COUNT_FIELD = "count";
 const METADATA_SOURCES_FIELD = "sources";
@@ -125,15 +125,10 @@ interface IAggregationParams {
  * @param options.matchKeys - The fields to aggregate on. Nested fields can be accessed using path notation.
  *                            Ex "a[0].b.c"
  *
- * @param options.buckets
- * @param options.buckets.<bucketFieldName> - An array of breakpoints defining the bucket ranges.
- *                                            The bucketFieldName must be one of the match keys.
- *                                            If a value is on a breakpoint it is put in the lower bucket.
- *
  * @param options.fields
  * @param options.fields.<outputFieldName> - The output field returned on the aggregated records.
  *                                           Nested fields are allowed using path notation. Ex "a[0].b.c"
- * @param options.fields.<outputFieldName>.method - the method of aggregation: either "sum", "min", "max", "average",
+ * @param options.fields.<outputFieldName>.method - The method of aggregation: either "sum", "min", "max", "average",
  *                                                  "standardDeviation", "weightedAverage", or "count"
  * @param options.fields.<outputFieldName>.sourceField - The field on the input records which the aggregation method
  *                                                       acts on. Not needed for the "count" method.
@@ -141,6 +136,11 @@ interface IAggregationParams {
  * @param options.fields.<outputFieldName>.weightField - Only used for "weightedAverage" method. The field on the input
  *                                                       records which is the coefficient or weight for the weighted average.
  *                                                       Nested fields can be accessed using path notation. Ex "a[0].b.c"
+ *
+ * @param options.buckets
+ * @param options.buckets.<bucketFieldName> - An array of breakpoints defining the bucket ranges.
+ *                                            The bucketFieldName must be one of the match keys.
+ *                                            If a value is on a breakpoint it is put in the lower bucket.
  *
  * @param options.noAggregateMetadata - If true, aggregation metadata will not be output on aggregated records.
  *                                  This is not recommended since the aggregated records cannot be augmented with new
@@ -494,24 +494,24 @@ function getWeightedAverageMetadataKey({
   return `weightedAverage${separator}${sourceField}${separator}${weightField}`;
 }
 
-export function getMin(value1: number, value2: number): number {
+function getMin(value1: number, value2: number): number {
   if (value2 < value1) {
     return value2;
   }
   return value1;
 }
 
-export function getMax(value1: number, value2: number): number {
+function getMax(value1: number, value2: number): number {
   if (value2 > value1) {
     return value2;
   }
   return value1;
 }
 
-export function isSubset(subset, superset) {
+function isSubset(subset, superset) {
   return _.difference(subset, superset).length === 0;
 }
 
-export function exists(input: any) {
+function exists(input: any) {
   return input !== undefined && input !== null;
 }
