@@ -1,4 +1,96 @@
-# Aggregate
+# statistical-aggregation
+
+## Example
+
+```javascript
+const aggregate = require("statistical-aggregation");
+
+const customersChunk1 = [
+  {
+    customerId: 1,
+    region: "midwest",
+    revenue: 10,
+  },
+  {
+    customerId: 2,
+    region: "midwest",
+    revenue: 20,
+  },
+  {
+    customerId: 4,
+    region: "northeast",
+    revenue: 40,
+  },
+];
+
+const customersChunk2 = [
+  {
+    customerId: 3,
+    region: "midwest",
+    revenue: 30,
+  },
+  {
+    customerId: 5,
+    region: "northeast",
+    revenue: 50,
+  },
+  {
+    customerId: 6,
+    region: "northeast",
+    revenue: 60,
+  },
+];
+
+const aggregationOptions = {
+  matchKeys: ["region"],
+  fields: {
+    averageRevenue: {
+      method: "average",
+      sourceField: "revenue",
+    },
+  },
+};
+
+const aggregatedChunk1 = aggregate({
+  records: customersChunk1,
+  ...aggregationOptions,
+});
+
+const aggregatedChunk2 = aggregate({
+  records: customersChunk2,
+  ...aggregationOptions,
+});
+
+const finalResult = aggregate({
+  records: [
+    ...aggregatedChunk1.aggregatedRecords,
+    ...aggregatedChunk2.aggregatedRecords,
+  ],
+  ...aggregationOptions,
+});
+```
+
+The value of `finalResult` will be:
+
+```json
+{
+  "aggregatedRecords": [
+    {
+      "region": "midwest",
+      "averageRevenue": 20
+    },
+    {
+      "region": "northeast",
+      "averageRevenue": 50
+    }
+  ],
+  "totals": {
+    "averageRevenue": 35
+  }
+}
+```
+
+## Summary
 
 This is a library for computing statistical aggregations which are composable and augmentable.
 
@@ -27,6 +119,7 @@ This is all done through a single function, `aggregate`.
 
 Composability and augmentability is possible because there is a field called `_aggregationMetadata`
 attached to each aggregated record.
+For simplicity, this field is not shown in the examples.
 You generally shouldn't need to worry about this field, but if the aggregated records are being
 stored in a database, this field must be present on each record in order to retain composability
 and augmentability.

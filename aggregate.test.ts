@@ -1016,4 +1016,87 @@ describe("aggregate.test", () => {
       },
     });
   });
+
+  it("Introductory Example", () => {
+    const customersChunk1 = [
+      {
+        customerId: 1,
+        region: "midwest",
+        revenue: 10,
+      },
+      {
+        customerId: 2,
+        region: "midwest",
+        revenue: 20,
+      },
+      {
+        customerId: 4,
+        region: "northeast",
+        revenue: 40,
+      },
+    ];
+
+    const customersChunk2 = [
+      {
+        customerId: 3,
+        region: "midwest",
+        revenue: 30,
+      },
+      {
+        customerId: 5,
+        region: "northeast",
+        revenue: 50,
+      },
+      {
+        customerId: 6,
+        region: "northeast",
+        revenue: 60,
+      },
+    ];
+
+    const aggregationOptions = {
+      matchKeys: ["region"],
+      fields: {
+        averageRevenue: {
+          method: AggregationTypes.average,
+          sourceField: "revenue",
+        },
+      },
+    };
+
+    const aggregatedChunk1 = aggregate({
+      records: customersChunk1,
+      ...aggregationOptions,
+    });
+
+    const aggregatedChunk2 = aggregate({
+      records: customersChunk2,
+      ...aggregationOptions,
+    });
+
+    const finalResult = aggregate({
+      records: [
+        ...aggregatedChunk1.aggregatedRecords,
+        ...aggregatedChunk2.aggregatedRecords,
+      ],
+      ...aggregationOptions,
+      noAggregateMetadata: true,
+    });
+
+    assert.deepEqual(finalResult, {
+      aggregatedRecords: [
+        {
+          region: "midwest",
+          averageRevenue: 20,
+        },
+        {
+          region: "northeast",
+          averageRevenue: 50,
+        },
+      ],
+      totals: {
+        averageRevenue: 35,
+      },
+    });
+  });
 });
