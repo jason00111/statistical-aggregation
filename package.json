@@ -11,5 +11,16 @@
     "typescript": "^4.1.2"
   },
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "name": "statistical-aggregation",
+  "version": "0.0.2",
+  "keywords": [
+    "aggregate",
+    "aggregation",
+    "statistical aggregation",
+    "parallel"
+  ],
+  "main": "aggregate",
+  "homepage": "https://github.com/jason00111/statistical-aggregation#readme.md",
+  "url": "https://github.com/jason00111/statistical-aggregation/issues"
 }
