@@ -170,7 +170,7 @@ interface IAggregationParams {
  * @returns object.aggregatedRecords - The aggregated records
  * @returns object.totals - Totals of all records
  */
-export function aggregate({
+export default function aggregate({
   records,
   matchKeys = [],
   buckets,

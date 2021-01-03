@@ -1,4 +1,4 @@
-import { AGG_METADATA_FIELD, aggregate, AggregationTypes } from "./aggregate";
+import aggregate, { AGG_METADATA_FIELD, AggregationTypes } from "./aggregate";
 import { assert } from "chai";
 
 const ERROR_MARGIN = 5e-14;
