@@ -90,6 +90,10 @@ The value of `finalResult` will be:
 }
 ```
 
+This is a simplified example.
+In a possible real use case, each chunk of data would be much larger and would be retrieved from a database.
+Additionally, the three aggregations would be computed on three different servers.
+
 ## Summary
 
 This is a library for computing statistical aggregations which are composable and augmentable.
@@ -113,7 +117,7 @@ This is all done through a single function, `aggregate`.
 - `"weightedAverage"`
 - `"standardDeviation"`\*
 
-\* Caution: For very large amounts of data, this may be inaccurate. See github [issue](https://github.com/jason00111/aggregate/issues/2).
+\* Caution: For very large amounts of data, standard deviation may be inaccurate. See github [issue](https://github.com/jason00111/aggregate/issues/2).
 
 ## Aggregation Metadata
 
@@ -124,7 +128,7 @@ You generally shouldn't need to worry about this field, but if the aggregated re
 stored in a database, this field must be present on each record in order to retain composability
 and augmentability.
 
-## How To Use
+## Usage
 
 An options object is passed to the function like this:
 
@@ -186,7 +190,7 @@ Here is more detail on all possible options:
 | options.noAggregateMetadata                   | If true, aggregation metadata will not be output on aggregated records. This is not recommended since the aggregated records cannot be augmented with new records if there is no aggregation metadata present. |
 | options.sortBy                                | An array of fields to sort the output by.                                                                                                                                                                      |
 
-##Examples
+## Examples
 
 ### Simple Example
 
