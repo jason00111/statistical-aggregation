@@ -13,12 +13,13 @@
   "license": "MIT",
   "type": "module",
   "name": "statistical-aggregation",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "keywords": [
     "aggregate",
     "aggregation",
     "statistical aggregation",
-    "parallel"
+    "parallel",
+    "composable"
   ],
   "main": "aggregate",
   "homepage": "https://github.com/jason00111/statistical-aggregation#readme.md",

@@ -1,5 +1,10 @@
 # statistical-aggregation
 
+## Installation
+```bash
+npm install statistical-aggregation
+```
+
 ## Example
 
 ```javascript
