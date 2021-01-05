@@ -2,6 +2,10 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "target": "ES2017"
-  }
+    "target": "ES2017",
+    "declaration": true,
+    "outDir": "dist",
+    "module": "CommonJS"
+  },
+  "exclude": ["node_modules", "dist", "test"]
 }

@@ -1,6 +1,7 @@
 # statistical-aggregation
 
 ## Installation
+
 ```bash
 npm install statistical-aggregation
 ```
@@ -8,7 +9,7 @@ npm install statistical-aggregation
 ## Example
 
 ```javascript
-const aggregate = require("statistical-aggregation");
+const { aggregate } = require("statistical-aggregation");
 
 const customersChunk1 = [
   {
