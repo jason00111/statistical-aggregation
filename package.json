@@ -13,7 +13,7 @@
   "license": "MIT",
   "name": "statistical-aggregation",
   "description": "A library for computing statistical aggregations which are composable and augmentable",
-  "version": "0.0.10",
+  "version": "0.1.1",
   "keywords": [
     "aggregate",
     "aggregation",

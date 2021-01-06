@@ -458,7 +458,7 @@ function transformSortKeyForSort({
 }
 
 function parseBucketString(bucketString: string): number[] {
-  if (bucketString.startsWith("<")) {
+  if (bucketString.startsWith("<=")) {
     return [-Infinity, Number(bucketString.slice(1))];
   }
 
@@ -487,9 +487,9 @@ function getFieldHashKey({
   let previousEndpoint;
 
   for (const endpoint of bucketEndpoints.sort()) {
-    if (value < endpoint) {
+    if (value <= endpoint) {
       if (!exists(previousEndpoint)) {
-        return `<${endpoint}`;
+        return `<=${endpoint}`;
       }
 
       return [previousEndpoint, endpoint].join("-");

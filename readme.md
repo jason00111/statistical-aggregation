@@ -477,15 +477,15 @@ The value of `result` will be:
     },
     {
       "age": "25-50",
-      "averageRevenue": 35,
-      "totalRevenue": 70,
-      "numberOfCustomers": 2
+      "averageRevenue": 30,
+      "totalRevenue": 90,
+      "numberOfCustomers": 3
     },
     {
       "age": "50+",
-      "averageRevenue": 15,
-      "totalRevenue": 30,
-      "numberOfCustomers": 2
+      "averageRevenue": 10,
+      "totalRevenue": 10,
+      "numberOfCustomers": 1
     }
   ],
   "totals": {

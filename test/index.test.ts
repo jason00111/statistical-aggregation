@@ -414,16 +414,16 @@ describe("aggregate.test", () => {
       },
     ];
 
-    const expectedCount = [1, 2, 2, 1];
+    const expectedCount = [2, 1, 2, 1];
     const expectedCountTotal = 6;
 
-    const expectedAverage = [-1, 0.5, 2.5, 22];
+    const expectedAverage = [-0.5, 1, 2.5, 22];
     const expectedAverageTotal = 4.5;
 
-    const expectedAveragePrice = [-1, 2.5, 15, 23];
+    const expectedAveragePrice = [-0.5, 5, 15, 23];
     const expectedAveragePriceTotal = 9.5;
 
-    const bucketString = ["<0", "0-10", "10-20", "20+"];
+    const bucketString = ["<=0", "0-10", "10-20", "20+"];
 
     const { aggregatedRecords, totals } = aggregate({
       records,
@@ -720,15 +720,15 @@ describe("aggregate.test", () => {
         },
         {
           age: "25-50",
-          averageRevenue: 35,
-          totalRevenue: 70,
-          numberOfCustomers: 2,
+          averageRevenue: 30,
+          totalRevenue: 90,
+          numberOfCustomers: 3,
         },
         {
           age: "50+",
-          averageRevenue: 15,
-          totalRevenue: 30,
-          numberOfCustomers: 2,
+          averageRevenue: 10,
+          totalRevenue: 10,
+          numberOfCustomers: 1,
         },
       ],
       totals: {
