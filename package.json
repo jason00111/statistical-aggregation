@@ -25,5 +25,8 @@
   "types": "dist/index.d.ts",
   "homepage": "https://github.com/jason00111/statistical-aggregation#readme.md",
   "url": "https://github.com/jason00111/statistical-aggregation/issues",
-  "prepublish": "tsc"
+  "prepublish": "tsc",
+  "scripts": {
+    "test": "tsc --target 'ES2017' --esModuleInterop --module 'CommonJS' test/index.test.ts && mocha test"
+  }
 }
