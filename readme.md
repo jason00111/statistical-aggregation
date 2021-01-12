@@ -124,9 +124,7 @@ This is all done through a single function, `aggregate`.
 - `"sum"`
 - `"average"`
 - `"weightedAverage"`
-- `"standardDeviation"`\*
-
-\* Caution: For very large amounts of data, standard deviation may be inaccurate. See github [issue](https://github.com/jason00111/aggregate/issues/2).
+- `"standardDeviation"`
 
 ## Aggregation Metadata
 

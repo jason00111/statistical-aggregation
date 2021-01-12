@@ -1,4 +1,17 @@
 {
+  "name": "statistical-aggregation",
+  "description": "A library for computing statistical aggregations which are composable and augmentable",
+  "version": "0.2.1",
+  "license": "MIT",
+  "homepage": "https://github.com/jason00111/statistical-aggregation#readme.md",
+  "url": "https://github.com/jason00111/statistical-aggregation/issues",
+  "keywords": [
+    "aggregate",
+    "aggregation",
+    "statistical aggregation",
+    "parallel",
+    "composable"
+  ],
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "lodash": "^4.17.20"
@@ -12,21 +25,8 @@
     "ts-node": "^9.1.1",
     "typescript": "^4.1.2"
   },
-  "license": "MIT",
-  "name": "statistical-aggregation",
-  "description": "A library for computing statistical aggregations which are composable and augmentable",
-  "version": "0.2.0",
-  "keywords": [
-    "aggregate",
-    "aggregation",
-    "statistical aggregation",
-    "parallel",
-    "composable"
-  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "homepage": "https://github.com/jason00111/statistical-aggregation#readme.md",
-  "url": "https://github.com/jason00111/statistical-aggregation/issues",
   "prepublish": "tsc",
   "scripts": {
     "test": "tsc --target 'ES2017' --esModuleInterop --module 'CommonJS' test/index.test.ts && mocha test"
