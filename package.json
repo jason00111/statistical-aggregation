@@ -1,8 +1,10 @@
 {
   "dependencies": {
+    "bignumber.js": "^9.0.1",
     "lodash": "^4.17.20"
   },
   "devDependencies": {
+    "@types/bignumber.js": "^5.0.0",
     "@types/mocha": "^8.2.0",
     "chai": "^4.2.0",
     "mocha": "^8.2.1",

@@ -18,6 +18,7 @@
  */
 
 import _ from "lodash";
+import BigNumber from "bignumber.js";
 
 export enum AggregationTypes {
   min = "min",
@@ -42,19 +43,20 @@ const METADATA_TOTAL_WEIGHT_FIELD = "totalWeight";
 
 interface IAggregationData {
   [METADATA_MATCH_KEYS_FIELD]: string[];
-  [METADATA_COUNT_FIELD]: number;
+  [METADATA_COUNT_FIELD]: BigNumber;
   [METADATA_SOURCES_FIELD]: {
     [sourceField: string]: {
-      [METADATA_SUM_FIELD]?: number;
-      [METADATA_SUM_OF_SQUARES_FIELD]?: number;
-      [METADATA_MIN_FIELD]?: number;
-      [METADATA_MAX_FIELD]?: number;
-      [METADATA_WEIGHTED_SUM_FIELD]?: number;
-      [METADATA_TOTAL_WEIGHT_FIELD]?: number;
+      [METADATA_SUM_FIELD]?: BigNumber;
+      [METADATA_SUM_OF_SQUARES_FIELD]?: BigNumber;
+      [METADATA_MIN_FIELD]?: BigNumber;
+      [METADATA_MAX_FIELD]?: BigNumber;
+      [METADATA_WEIGHTED_SUM_FIELD]?: BigNumber;
+      [METADATA_TOTAL_WEIGHT_FIELD]?: BigNumber;
     };
   };
 }
 
+// Functions to calculate the aggregation values from the aggregation metadata
 const aggregationFunctions: {
   [key in AggregationTypes]: ({
     aggregationData,
@@ -67,29 +69,33 @@ const aggregationFunctions: {
   }) => number;
 } = {
   [AggregationTypes.min]: ({ aggregationData, sourceField }) =>
-    aggregationData[METADATA_SOURCES_FIELD][sourceField][METADATA_MIN_FIELD],
+    aggregationData[METADATA_SOURCES_FIELD][sourceField][
+      METADATA_MIN_FIELD
+    ].toNumber(),
   [AggregationTypes.max]: ({ aggregationData, sourceField }) =>
-    aggregationData[METADATA_SOURCES_FIELD][sourceField][METADATA_MAX_FIELD],
+    aggregationData[METADATA_SOURCES_FIELD][sourceField][
+      METADATA_MAX_FIELD
+    ].toNumber(),
   [AggregationTypes.sum]: ({ aggregationData, sourceField }) =>
-    aggregationData[METADATA_SOURCES_FIELD][sourceField][METADATA_SUM_FIELD],
+    aggregationData[METADATA_SOURCES_FIELD][sourceField][
+      METADATA_SUM_FIELD
+    ].toNumber(),
   [AggregationTypes.count]: ({ aggregationData }) =>
-    aggregationData[METADATA_COUNT_FIELD],
+    aggregationData[METADATA_COUNT_FIELD].toNumber(),
   [AggregationTypes.average]: ({ aggregationData, sourceField }) =>
-    aggregationData[METADATA_SOURCES_FIELD][sourceField][METADATA_SUM_FIELD] /
-    aggregationData[METADATA_COUNT_FIELD],
+    aggregationData[METADATA_SOURCES_FIELD][sourceField][
+      METADATA_SUM_FIELD
+    ].div(aggregationData[METADATA_COUNT_FIELD]).toNumber(),
   [AggregationTypes.standardDeviation]: ({ aggregationData, sourceField }) => {
-    const count = aggregationData[METADATA_COUNT_FIELD];
-    const average =
-      aggregationData[METADATA_SOURCES_FIELD][sourceField][METADATA_SUM_FIELD] /
-      count;
-    const variance =
-      aggregationData[METADATA_SOURCES_FIELD][sourceField][
-        METADATA_SUM_OF_SQUARES_FIELD
-      ] /
-        count -
-      average ** 2;
+    const count: BigNumber = aggregationData[METADATA_COUNT_FIELD];
+    const average: BigNumber = aggregationData[METADATA_SOURCES_FIELD][
+      sourceField
+    ][METADATA_SUM_FIELD].div(count);
+    const variance: BigNumber = aggregationData[METADATA_SOURCES_FIELD][
+      sourceField
+    ][METADATA_SUM_OF_SQUARES_FIELD].div(count).minus(average.pow(2));
 
-    return Math.sqrt(variance);
+    return variance.sqrt().toNumber();
   },
   [AggregationTypes.weightedAverage]: ({
     aggregationData,
@@ -101,14 +107,13 @@ const aggregationFunctions: {
       weightField,
     });
 
-    return (
-      aggregationData[METADATA_SOURCES_FIELD][metadataKey][
-        METADATA_WEIGHTED_SUM_FIELD
-      ] /
+    return aggregationData[METADATA_SOURCES_FIELD][metadataKey][
+      METADATA_WEIGHTED_SUM_FIELD
+    ].div(
       aggregationData[METADATA_SOURCES_FIELD][metadataKey][
         METADATA_TOTAL_WEIGHT_FIELD
       ]
-    );
+    ).toNumber();
   },
 };
 
@@ -209,7 +214,12 @@ function aggregateInternal({
   noAggregateMetadata = false,
   sortBy,
 }: IAggregationParams): any[] {
-  const recordsHash: { [key: string]: any } = {};
+  const recordsHash: {
+    [key: string]: {
+      _aggregationMetadata: IAggregationData;
+      [key: string]: any;
+    };
+  } = {};
 
   for (const record of records) {
     let isAggregatedRecord: boolean;
@@ -290,12 +300,12 @@ function aggregateInternal({
       .join("");
 
     if (!recordsHash[hashKey]) {
-      recordsHash[hashKey] = {};
-
-      recordsHash[hashKey][AGG_METADATA_FIELD] = {
-        [METADATA_COUNT_FIELD]: 0,
-        [METADATA_MATCH_KEYS_FIELD]: matchKeys,
-        [METADATA_SOURCES_FIELD]: {},
+      recordsHash[hashKey] = {
+        [AGG_METADATA_FIELD]: {
+          [METADATA_COUNT_FIELD]: new BigNumber(0),
+          [METADATA_MATCH_KEYS_FIELD]: matchKeys,
+          [METADATA_SOURCES_FIELD]: {},
+        },
       };
 
       for (const matchKey of matchKeys) {
@@ -313,9 +323,9 @@ function aggregateInternal({
 
     recordsHash[hashKey][AGG_METADATA_FIELD][
       METADATA_COUNT_FIELD
-    ] += isAggregatedRecord
-      ? record[AGG_METADATA_FIELD][METADATA_COUNT_FIELD]
-      : 1;
+    ] = recordsHash[hashKey][AGG_METADATA_FIELD][METADATA_COUNT_FIELD].plus(
+      isAggregatedRecord ? record[AGG_METADATA_FIELD][METADATA_COUNT_FIELD] : 1
+    );
 
     standardSourceFields.forEach((sourceField) => {
       if (
@@ -326,10 +336,10 @@ function aggregateInternal({
         recordsHash[hashKey][AGG_METADATA_FIELD][METADATA_SOURCES_FIELD][
           sourceField
         ] = {
-          [METADATA_SUM_FIELD]: 0,
-          [METADATA_SUM_OF_SQUARES_FIELD]: 0,
-          [METADATA_MIN_FIELD]: Infinity,
-          [METADATA_MAX_FIELD]: -Infinity,
+          [METADATA_SUM_FIELD]: new BigNumber(0),
+          [METADATA_SUM_OF_SQUARES_FIELD]: new BigNumber(0),
+          [METADATA_MIN_FIELD]: new BigNumber(Infinity),
+          [METADATA_MAX_FIELD]: new BigNumber(-Infinity),
         };
       }
 
@@ -341,20 +351,26 @@ function aggregateInternal({
       const metadataOnRecord =
         record[AGG_METADATA_FIELD]?.[METADATA_SOURCES_FIELD][sourceField];
 
-      metadataInHash[METADATA_SUM_FIELD] += isAggregatedRecord
-        ? metadataOnRecord[METADATA_SUM_FIELD]
-        : newValue;
+      metadataInHash[METADATA_SUM_FIELD] = metadataInHash[
+        METADATA_SUM_FIELD
+      ].plus(
+        isAggregatedRecord ? metadataOnRecord[METADATA_SUM_FIELD] : newValue
+      );
 
-      metadataInHash[METADATA_SUM_OF_SQUARES_FIELD] += isAggregatedRecord
-        ? metadataOnRecord[METADATA_SUM_OF_SQUARES_FIELD]
-        : newValue * newValue;
+      metadataInHash[METADATA_SUM_OF_SQUARES_FIELD] = metadataInHash[
+        METADATA_SUM_OF_SQUARES_FIELD
+      ].plus(
+        isAggregatedRecord
+          ? metadataOnRecord[METADATA_SUM_OF_SQUARES_FIELD]
+          : new BigNumber(newValue).pow(2)
+      );
 
-      metadataInHash[METADATA_MIN_FIELD] = getMin(
+      metadataInHash[METADATA_MIN_FIELD] = BigNumber.min(
         metadataInHash[METADATA_MIN_FIELD],
         isAggregatedRecord ? metadataOnRecord[METADATA_MIN_FIELD] : newValue
       );
 
-      metadataInHash[METADATA_MAX_FIELD] = getMax(
+      metadataInHash[METADATA_MAX_FIELD] = BigNumber.max(
         metadataInHash[METADATA_MAX_FIELD],
         isAggregatedRecord ? metadataOnRecord[METADATA_MAX_FIELD] : newValue
       );
@@ -383,8 +399,8 @@ function aggregateInternal({
         recordsHash[hashKey][AGG_METADATA_FIELD][METADATA_SOURCES_FIELD][
           metadataKey
         ] = {
-          [METADATA_TOTAL_WEIGHT_FIELD]: 0,
-          [METADATA_WEIGHTED_SUM_FIELD]: 0,
+          [METADATA_TOTAL_WEIGHT_FIELD]: new BigNumber(0),
+          [METADATA_WEIGHTED_SUM_FIELD]: new BigNumber(0),
         };
       }
 
@@ -395,13 +411,21 @@ function aggregateInternal({
       const metadataOnRecord =
         record[AGG_METADATA_FIELD]?.[METADATA_SOURCES_FIELD][metadataKey];
 
-      metadataInHash[METADATA_TOTAL_WEIGHT_FIELD] += isAggregatedRecord
-        ? metadataOnRecord[METADATA_TOTAL_WEIGHT_FIELD]
-        : weightValue;
+      metadataInHash[METADATA_TOTAL_WEIGHT_FIELD] = metadataInHash[
+        METADATA_TOTAL_WEIGHT_FIELD
+      ].plus(
+        isAggregatedRecord
+          ? metadataOnRecord[METADATA_TOTAL_WEIGHT_FIELD]
+          : weightValue
+      );
 
-      metadataInHash[METADATA_WEIGHTED_SUM_FIELD] += isAggregatedRecord
-        ? metadataOnRecord[METADATA_WEIGHTED_SUM_FIELD]
-        : sourceValue * weightValue;
+      metadataInHash[METADATA_WEIGHTED_SUM_FIELD] = metadataInHash[
+        METADATA_WEIGHTED_SUM_FIELD
+      ].plus(
+        isAggregatedRecord
+          ? metadataOnRecord[METADATA_WEIGHTED_SUM_FIELD]
+          : new BigNumber(sourceValue).times(weightValue)
+      );
     });
   }
 
@@ -511,20 +535,6 @@ function getWeightedAverageMetadataKey({
   const separator = ",";
 
   return `weightedAverage${separator}${sourceField}${separator}${weightField}`;
-}
-
-function getMin(value1: number, value2: number): number {
-  if (value2 < value1) {
-    return value2;
-  }
-  return value1;
-}
-
-function getMax(value1: number, value2: number): number {
-  if (value2 > value1) {
-    return value2;
-  }
-  return value1;
 }
 
 function isSubset(subset, superset) {
