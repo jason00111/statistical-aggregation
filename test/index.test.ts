@@ -1142,4 +1142,47 @@ describe("aggregate.test", () => {
       `Expected ${result.totals.standardDeviation} to equal ${expectedStandardDeviation} +/- ${tolerance}`
     );
   });
+
+  it.skip("Standard deviation for even more data", () => {
+    const factor = 1e30;
+    const expectedStandardDeviation = 0.816496580927726 * factor;
+    const tolerance = 1e-15 * factor;
+
+    const customers = [];
+
+    for (let i = 0; i < 1e7; i++) {
+      customers.push(
+        {
+          revenue: factor,
+        },
+        {
+          revenue: 2 * factor,
+        },
+        {
+          revenue: 3 * factor,
+        }
+      );
+    }
+
+    const aggregationOptions = {
+      matchKeys: [],
+      fields: {
+        standardDeviation: {
+          method: AggregationTypes.standardDeviation,
+          sourceField: "revenue",
+        },
+      },
+    };
+
+    const result = aggregate({
+      records: customers,
+      ...aggregationOptions,
+    });
+
+    assert.isBelow(
+      Math.abs(result.totals.standardDeviation - expectedStandardDeviation),
+      tolerance,
+      `Expected ${result.totals.standardDeviation} to equal ${expectedStandardDeviation} +/- ${tolerance}`
+    );
+  });
 });
