@@ -1,7 +1,7 @@
 # statistical-aggregation
 
 This is a library for computing statistical aggregations which are composable and augmentable.
-Also see this [blog post](https://dev.to/jason00111/aggregation-library-2ncj).
+Also see this [blog post](https://jason00111.hashnode.dev/aggregating-in-parallel).
 
 ## Installation
 

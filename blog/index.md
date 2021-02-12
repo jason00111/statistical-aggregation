@@ -112,32 +112,32 @@ It's similar for weighted average and standard deviation. For weighted average w
 
 The following equations show how we can find the desired aggregations from this metadata. The {% katex inline %}\sum{% endkatex %} symbol indicates to add over all the chunks.
 
-{% katex %}
+$$
 average = \frac{ \sum sum }{ \sum count }
-{% endkatex %}
+$$
 
-{% katex %}
+$$
 weighted \space average =
 \frac{ \sum weighted \space sum }{ \sum total \space weight }
-{% endkatex %}
+$$
 
-{% katex %}
+$$
 standard \space deviation =
 \sqrt{
 \frac{ \sum sum \space of \space squares }{ \sum count }
 -
 \bigg( \frac{ \sum sum }{ \sum count } \bigg) ^ 2
 }
-{% endkatex %}
+$$
 
 In the statistical-aggregation library, all this metadata is tracked in an object labeled `_aggregationMetadata` which is attached to each aggregated record.
 
 This ability to combine the results of multiple aggregations into one is called composability and can be stated in mathematical notation as,
 
-{% katex %}
+$$
 F(\\{a, b, c, d\\})
 = F(\\{F(\\{a, b\\}), \space F(\\{c, d\\})\\})
-{% endkatex %}
+$$
 
 ## Other Requirements
 
@@ -161,24 +161,14 @@ The data was often structured and the relevant number may be nested within the r
 
 In most use cases, the total aggregation across all records was desired. For example, if we were finding the average customer revenue in each geographical region, we'd also want the average revenue across all regions.
 
+## Challenges
+
+I ran into a problem where, for very large amounts of data, the _sum_ and _sum of squares_ stored in the metadata could get too large for a JavaScript number to handle accurately. This resulted in inaccurate standard deviations and averages. The problem was solved by using a big number library.
+
 ## Conclusion
 
 It was fun to figure out this method. There are other ways to do this, but this one is straightforward and easy to understand, which is desirable when maintaining a codebase over the lifetime of a company.
 
-## Future Work
-
-I suspect that for very large amounts of data this method of calculating the standard deviation can lead to errors because the sum and the sum of squares can get very large. This problem and a solution are discussed [here](https://www.johndcook.com/blog/standard_deviation/). Further investigation is necessary to determine if the method in this article is affected by this issue.
-
-## Update
-
-It turns out that there was a problem for very large amounts of data because the _sum_ and _sum of squares_ stored in the metadata could get too large for the JavaScript number to handle accurately. The problem was solved by using a big number library.
-
-After some testing, it also appears that the problem discussed in the article above does not affect this library. I believe it is because the calculation is done a little differently.
-
 ***
 
-{% github jason00111/aggregate %}
-
-
-Cover image courtesy of monkik from the Noun Project./
-
+Cover image courtesy of monkik from the Noun Project.
