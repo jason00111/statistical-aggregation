@@ -82,11 +82,11 @@ const aggregationOptions = {
 
 app.post("/customer-stream", (request) => {
   ({ aggregatedRecords: finalResult } = aggregate({
-    records: [...request.params.customers, ...finalResult],
+    records: [...request.body.customers, ...finalResult],
     ...aggregationOptions,
   }));
 
-  collectedChunkNumbers.add(request.params.chunkNumber);
+  collectedChunkNumbers.add(request.body.chunkNumber);
 
   checkIfDone();
 });
