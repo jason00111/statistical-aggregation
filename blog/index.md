@@ -55,7 +55,7 @@ const { aggregatedRecords } = aggregate({
 
 await sendToAccumulator({
   customers: aggregatedRecords,
-  chunkNumber
+  chunkNumber,
 });
 ```
 
@@ -82,7 +82,7 @@ const aggregationOptions = {
 
 app.post("/customer-stream", (request) => {
   ({ aggregatedRecords: finalResult } = aggregate({
-    records: request.params.customers,
+    records: [...request.params.customers, ...finalResult],
     ...aggregationOptions,
   }));
 
@@ -169,6 +169,6 @@ I ran into a problem where, for very large amounts of data, the _sum_ and _sum o
 
 It was fun to figure out this method. There are other ways to do this, but this one is straightforward and easy to understand, which is desirable when maintaining a codebase over the lifetime of a company.
 
-***
+---
 
 Cover image courtesy of monkik from the Noun Project.
