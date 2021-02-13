@@ -110,7 +110,7 @@ For the chunk of shorter pencils, the count is `8` and the sum is `28`. For the 
 
 It's similar for weighted average and standard deviation. For weighted average we need to keep track of the _weighted sum_ and the _total weight_. For standard deviation we need to track the _sum_, the _sum of squares_, and the _count_.
 
-The following equations show how we can find the desired aggregations from this metadata. The {% katex inline %}\sum{% endkatex %} symbol indicates to add over all the chunks.
+The following equations show how we can find the desired aggregations from this metadata. The \\(\sum\\) symbol indicates to add over all the chunks.
 
 $$
 average = \frac{ \sum sum }{ \sum count }
